@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Learn Chess - Special Moves | Adaptive Chess</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="icon" href="https://img.icons8.com/ios-filled/48/9f88ff/chess-king.png">
+  <link rel="stylesheet" href="homePage.css" />
+  <link rel="stylesheet" href="learn_special.css" />
+  
+</head>
+<body>
+    <script>
+      // Redirect unauthenticated users
+      const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+      if (!isLoggedIn) {
+        window.location.replace("/homePage");
+        alert("Please log in to learn how to play");
+  
+      }
+    </script>
+
+  <div class="bg-animated"></div>
+  <nav class="navbar">
+    <a href="/homePage" class="brand">
+      <img src="https://img.icons8.com/ios-filled/48/9f88ff/chess-king.png" alt="Chess Logo" />
+      <span>Adaptive Chess</span>
+    </a>
+    <div class="navbar-menu" id="navbar-menu"></div>
+  </nav>
+  <main>
+    <div class="learn-container">
+      <div class="chapter-nav">
+        <button class="chapter-btn" onclick="window.location.href='/learn'">1. How Pieces Move</button>
+        <button class="chapter-btn active" disabled>2. Special Moves</button>
+        <button class="chapter-btn" onclick="window.location.href='/learn_notation'">3. Notation</button>
+      </div>
+      <div class="learn-title">Special Chess Moves</div>
+      <div class="learn-desc">
+        Learn about <b>Castling</b>, <b>En Passant</b>, and <b>Promotion</b>.<br>
+        Select a move and use the arrows to see each step in action.
+      </div>
+      <div class="special-move-selector">
+        <button class="special-btn active" id="castlingBtn">Castling</button>
+        <button class="special-btn" id="enpassantBtn">En Passant</button>
+        <button class="special-btn" id="promotionBtn">Promotion</button>
+      </div>
+      <div class="move-label" id="specialMoveLabel"></div>
+      <div class="notation-box" id="notationBox"></div>
+      <div class="board-wrap">
+        <div id="specialBoard"></div>
+      </div>
+      <div class="move-controls">
+        <button id="prevBtn" onclick="prevStep()">⟨ Prev</button>
+        <button id="nextBtn" onclick="nextStep()">Next ⟩</button>
+      </div>
+    </div>
+  </main>
+  <script>
+    // Navbar logic (reuse from your main pages)
+    function renderNavbar() {
+      const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+      const username = localStorage.getItem("username") || "";
+      const nav = document.getElementById('navbar-menu');
+      nav.innerHTML = "";
+      if (!isLoggedIn) {
+        nav.innerHTML = `
+            <a class="nav-link" href="/login">Login</a>
+            <a class="nav-link" href="/signup">Sign Up</a>
+        `;
+      } else {
+        nav.innerHTML = `
+            <a class="nav-link" href="/play">Play Chess</a>
+            <a class="nav-link" href="/learn">Learn Chess</a>
+            <a class="nav-link" href="/profile">
+                <span class="profile-avatar">${username.charAt(0).toUpperCase()}</span> ${username || "Profile"}
+            </a>
+            <button class="nav-btn" onclick="logout()">Logout</button>
+        `;
+      }
+    }
+    function logout() {
+        localStorage.removeItem("isLoggedIn");
+        localStorage.removeItem("username");
+        sessionStorage.clear(); // optional: clear anything else
+        window.location.replace("/homePage"); // replaces current history entry
+      }
+      renderNavbar();
+
+    // Special Moves Logic
+    const specialBoard = document.getElementById('specialBoard');
+
+    // Special moves steps
+    const specialMoves = {
+      castling: [
+        {
+          label: "Castling: Initial Position",
+          desc: "White can castle kingside (O-O) here. Both king and rook haven't moved.",
+          squares: {
+            60: "wK", 63: "wR",  // White king and rook (e1, h1)
+          },
+          highlights: [60, 62, 63]
+        },
+        {
+          label: "Castling: King Moves Two Squares",
+          desc: "King moves two squares toward the rook.",
+          squares: {
+            62: "wK", 63: "wR"
+          },
+          highlights: [60, 62],
+          notation: "O-O"
+        },
+        {
+          label: "Castling: Rook Jumps Over",
+          desc: "Rook jumps over and lands next to the king. Castling complete!",
+          squares: {
+            62: "wK", 61: "wR"
+          },
+          highlights: [61, 62],
+          notation: "O-O (Kingside Castling)"
+        }
+      ],
+      enpassant: [
+        {
+          label: "En Passant: Initial Position",
+          desc: "White pawn is on e5, black pawn is on d7. Black pawn moves two squares forward.",
+          squares: {
+            28: "wP", // e5
+            11: "bP"  // d7
+          },
+          highlights: [28, 11, 27] // e5, d7, d5
+        },
+        {
+          label: "En Passant: Black pawn advances",
+          desc: "Black pawn moves d7-d5 next to white pawn.",
+          squares: {
+            28: "wP",
+            27: "bP"
+          },
+          highlights: [28, 27],
+          notation: "d5"
+        },
+        {
+          label: "En Passant: White captures en passant",
+          desc: "White pawn captures en passant (e5xd6 e.p.), landing on d6.",
+          squares: {
+            19: "wP"
+          },
+          highlights: [27, 19],
+          notation: "exd6 e.p."
+        }
+      ],
+      promotion: [
+        {
+          label: "Promotion: Initial Position",
+          desc: "White pawn is ready to promote to the 8th rank.",
+          squares: {
+            8: "wP" // a7
+          },
+          highlights: [8, 0]
+        },
+        {
+          label: "Promotion: Pawn moves to 8th rank",
+          desc: "Pawn moves to a8 and can promote to a queen, rook, bishop, or knight.",
+          squares: {
+            0: "wP"
+          },
+          highlights: [8, 0],
+          notation: "a8=Q"
+        },
+        {
+          label: "Promotion: Pawn becomes a Queen",
+          desc: "Pawn promotes to a queen. This is shown as 'a8=Q' in notation.",
+          squares: {
+            0: "wQ"
+          },
+          highlights: [0],
+          notation: "a8=Q"
+        }
+      ]
+    };
+
+    let currentMoveType = 'castling';
+    let currentStep = 0;
+
+    function renderSpecialBoard() {
+      specialBoard.innerHTML = '';
+      for (let i = 0; i < 64; i++) {
+        const sq = document.createElement('div');
+        sq.className = 'chess-square ' + ((Math.floor(i / 8) + i) % 2 === 0 ? 'light' : 'dark');
+        sq.dataset.idx = i;
+        specialBoard.appendChild(sq);
+      }
+      const stepObj = specialMoves[currentMoveType][currentStep];
+      if (stepObj && stepObj.squares) {
+        Object.entries(stepObj.squares).forEach(([idx, piece]) => {
+          const square = specialBoard.children[idx];
+          square.innerHTML = '';
+          const img = document.createElement('img');
+          img.src = `pieces/${piece}.png`;
+          img.alt = piece;
+          img.draggable = false;
+          square.appendChild(img);
+        });
+      }
+      if (stepObj && stepObj.highlights) {
+        stepObj.highlights.forEach(idx => {
+          specialBoard.children[idx].classList.add('highlight');
+        });
+      }
+      document.getElementById('specialMoveLabel').textContent = stepObj.label || '';
+      let notationBox = document.getElementById('notationBox');
+      let notationText = '';
+      if (stepObj.notation) {
+        notationText = `<b>Notation:</b> <span style="color:#facc15;">${stepObj.notation}</span><br>`;
+      }
+      notationBox.innerHTML = `${notationText}${stepObj.desc || ''}`;
+      document.getElementById('prevBtn').disabled = (currentStep === 0);
+      document.getElementById('nextBtn').disabled = (currentStep === specialMoves[currentMoveType].length - 1);
+    }
+
+    function selectMove(type) {
+      currentMoveType = type;
+      currentStep = 0;
+      document.querySelectorAll('.special-btn').forEach(btn => btn.classList.remove('active'));
+      document.getElementById(type + 'Btn').classList.add('active');
+      renderSpecialBoard();
+    }
+    function nextStep() {
+      if (currentStep < specialMoves[currentMoveType].length - 1) {
+        currentStep++;
+        renderSpecialBoard();
+      }
+    }
+    function prevStep() {
+      if (currentStep > 0) {
+        currentStep--;
+        renderSpecialBoard();
+      }
+    }
+
+    document.getElementById('castlingBtn').onclick = () => selectMove('castling');
+    document.getElementById('enpassantBtn').onclick = () => selectMove('enpassant');
+    document.getElementById('promotionBtn').onclick = () => selectMove('promotion');
+
+    renderSpecialBoard();
+  </script>
+</body>
+</html>

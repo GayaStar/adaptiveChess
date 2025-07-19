@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      http-equiv="Cache-Control"
+      content="no-store, no-cache, must-revalidate"
+    />
+    <meta http-equiv="Pragma" content="no-cache" />
+    <meta http-equiv="Expires" content="0" />
+
+    <title>Learn Chess - How Pieces Move | Adaptive Chess</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link
+      rel="icon"
+      href="https://img.icons8.com/ios-filled/48/9f88ff/chess-king.png"
+    />
+    <link rel="stylesheet" href="homePage.css" />
+    <link rel="stylesheet" href="learn.css" />
+   
+  </head>
+
+  <body>
+    <script>
+      // Redirect unauthenticated users
+      const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+      if (!isLoggedIn) {
+        window.location.replace("/homePage");
+        alert("Please log in to learn how to play");
+  
+      }
+    </script>
+
+    <div class="bg-animated"></div>
+    <nav class="navbar">
+      <a href="/homePage" class="brand">
+        <img
+          src="https://img.icons8.com/ios-filled/48/9f88ff/chess-king.png"
+          alt="Chess Logo"
+        />
+        <span>Adaptive Chess</span>
+      </a>
+      <div class="navbar-menu" id="navbar-menu"></div>
+    </nav>
+    <main>
+      <div class="learn-container">
+        <div class="chapter-nav">
+          <button class="chapter-btn active" disabled>
+            1. How Pieces Move
+          </button>
+          <button
+            class="chapter-btn"
+            onclick="window.location.href='/learn_special'"
+          >
+            2. Special Moves
+          </button>
+          <button
+            class="chapter-btn"
+            onclick="window.location.href='/learn_notation'"
+          >
+            3. Notation
+          </button>
+        </div>
+        <div class="learn-title">How Chess Pieces Move</div>
+        <div class="learn-desc">
+          Select a chess piece below to see how it moves on the board.<br />
+          The highlighted squares show where that piece can move from its
+          current position.
+        </div>
+        <div class="board-section">
+          <div class="piece-btns">
+            <button class="piece-btn" id="pawnBtn" title="Pawn">
+              <img src="pieces/wP.png" alt="Pawn" />
+            </button>
+            <button class="piece-btn" id="rookBtn" title="Rook">
+              <img src="pieces/wR.png" alt="Rook" />
+            </button>
+            <button class="piece-btn" id="knightBtn" title="Knight">
+              <img src="pieces/wN.png" alt="Knight" />
+            </button>
+            <button class="piece-btn" id="bishopBtn" title="Bishop">
+              <img src="pieces/wB.png" alt="Bishop" />
+            </button>
+            <button class="piece-btn" id="queenBtn" title="Queen">
+              <img src="pieces/wQ.png" alt="Queen" />
+            </button>
+            <button class="piece-btn" id="kingBtn" title="King">
+              <img src="pieces/wK.png" alt="King" />
+            </button>
+          </div>
+          <div class="piece-label" id="pieceLabel"></div>
+          <div class="board-wrap">
+            <div id="learnBoard"></div>
+          </div>
+        </div>
+      </div>
+    </main>
+    <script>
+      // Prevent back button from showing cached page
+      window.addEventListener("pageshow", function (event) {
+        if (event.persisted || window.performance.navigation.type === 2) {
+          window.location.reload();
+        }
+      });
+
+      // Navbar logic (reuse from your main pages)
+      function renderNavbar() {
+        const isLoggedIn = localStorage.getItem("isLoggedIn") === "true";
+        const username = localStorage.getItem("username") || "";
+        const nav = document.getElementById("navbar-menu");
+        nav.innerHTML = "";
+        if (!isLoggedIn) {
+          nav.innerHTML = `
+            <a class="nav-link" href="/login">Login</a>
+            <a class="nav-link" href="/signup">Sign Up</a>
+        `;
+        } else {
+          nav.innerHTML = `
+            <a class="nav-link" href="/play">Play Chess</a>
+            <a class="nav-link" href="/learn">Learn Chess</a>
+            <a class="nav-link" href="/profile">
+                <span class="profile-avatar">${username
+                  .charAt(0)
+                  .toUpperCase()}</span> ${username || "Profile"}
+            </a>
+            <button class="nav-btn" onclick="logout()">Logout</button>
+        `;
+        }
+      }
+      function logout() {
+        localStorage.removeItem("isLoggedIn");
+        localStorage.removeItem("username");
+        sessionStorage.clear(); // optional: clear anything else
+        window.location.replace("/homePage"); // replaces current history entry
+      }
+      renderNavbar();
+
+      // --- Chessboard logic for Chapter 1 ---
+      const board = document.getElementById("learnBoard");
+      const PIECES = {
+        pawn: { file: "wP.png", label: "Pawn", color: "white" },
+        rook: { file: "wR.png", label: "Rook", color: "white" },
+        knight: { file: "wN.png", label: "Knight", color: "white" },
+        bishop: { file: "wB.png", label: "Bishop", color: "white" },
+        queen: { file: "wQ.png", label: "Queen", color: "white" },
+        king: { file: "wK.png", label: "King", color: "white" },
+      };
+
+      // Create empty 8x8 board
+      function createBoard() {
+        board.innerHTML = "";
+        for (let i = 0; i < 64; i++) {
+          const sq = document.createElement("div");
+          sq.className =
+            "chess-square " +
+            ((Math.floor(i / 8) + i) % 2 === 0 ? "light" : "dark");
+          sq.dataset.idx = i;
+          board.appendChild(sq);
+        }
+      }
+      createBoard();
+
+      function showPieceMoves(pieceKey) {
+        createBoard();
+        // Remove .active from all piece buttons
+        document
+          .querySelectorAll(".piece-btn")
+          .forEach((btn) => btn.classList.remove("active"));
+        document.getElementById(pieceKey + "Btn").classList.add("active");
+        // Place piece on d4 (idx 27)
+        const squares = board.querySelectorAll(".chess-square");
+        const centerIdx = 27;
+        squares[centerIdx].innerHTML = "";
+        const img = document.createElement("img");
+        img.src = `pieces/${PIECES[pieceKey].file}`;
+        img.alt = PIECES[pieceKey].label;
+        img.draggable = false;
+        squares[centerIdx].appendChild(img);
+
+        // Highlight moves for each piece
+        const row = Math.floor(centerIdx / 8);
+        const col = centerIdx % 8;
+        let targets = [];
+        switch (pieceKey) {
+          case "pawn":
+            if (row > 0) targets.push((row - 1) * 8 + col);
+            if (row === 6) targets.push((row - 2) * 8 + col);
+            if (row > 0 && col > 0) targets.push((row - 1) * 8 + (col - 1));
+            if (row > 0 && col < 7) targets.push((row - 1) * 8 + (col + 1));
+            break;
+          case "rook":
+            for (let c = col + 1; c < 8; c++) targets.push(row * 8 + c);
+            for (let c = col - 1; c >= 0; c--) targets.push(row * 8 + c);
+            for (let r = row + 1; r < 8; r++) targets.push(r * 8 + col);
+            for (let r = row - 1; r >= 0; r--) targets.push(r * 8 + col);
+            break;
+          case "knight":
+            [
+              [-2, -1],
+              [-2, 1],
+              [-1, -2],
+              [-1, 2],
+              [1, -2],
+              [1, 2],
+              [2, -1],
+              [2, 1],
+            ].forEach(([dr, dc]) => {
+              const r = row + dr,
+                c = col + dc;
+              if (r >= 0 && r < 8 && c >= 0 && c < 8) targets.push(r * 8 + c);
+            });
+            break;
+          case "bishop":
+            for (let dr of [-1, 1])
+              for (let dc of [-1, 1])
+                for (let i = 1; i < 8; i++) {
+                  const r = row + dr * i,
+                    c = col + dc * i;
+                  if (r >= 0 && r < 8 && c >= 0 && c < 8)
+                    targets.push(r * 8 + c);
+                  else break;
+                }
+            break;
+          case "queen":
+            // Rook-like moves
+            for (let c = col + 1; c < 8; c++) targets.push(row * 8 + c);
+            for (let c = col - 1; c >= 0; c--) targets.push(row * 8 + c);
+            for (let r = row + 1; r < 8; r++) targets.push(r * 8 + col);
+            for (let r = row - 1; r >= 0; r--) targets.push(r * 8 + col);
+            // Bishop-like moves
+            for (let dr of [-1, 1])
+              for (let dc of [-1, 1])
+                for (let i = 1; i < 8; i++) {
+                  const r = row + dr * i,
+                    c = col + dc * i;
+                  if (r >= 0 && r < 8 && c >= 0 && c < 8)
+                    targets.push(r * 8 + c);
+                  else break;
+                }
+            break;
+          case "king":
+            for (let dr = -1; dr <= 1; dr++)
+              for (let dc = -1; dc <= 1; dc++) {
+                if (dr === 0 && dc === 0) continue;
+                const r = row + dr,
+                  c = col + dc;
+                if (r >= 0 && r < 8 && c >= 0 && c < 8) targets.push(r * 8 + c);
+              }
+            break;
+        }
+        targets.forEach((idx) => squares[idx].classList.add("highlight"));
+        document.getElementById("pieceLabel").textContent =
+          PIECES[pieceKey].label +
+          ": " +
+          {
+            pawn: "Moves forward one square. Captures diagonally. Can move two squares from its starting position.",
+            rook: "Moves any number of squares vertically or horizontally.",
+            knight:
+              "Moves in an 'L' shape: two squares in one direction, then one square perpendicular.",
+            bishop: "Moves diagonally any number of squares.",
+            queen: "Moves like both a rook and a bishop.",
+            king: "Moves one square in any direction.",
+          }[pieceKey];
+      }
+
+      // Set up piece buttons
+      document.getElementById("pawnBtn").onclick = () => showPieceMoves("pawn");
+      document.getElementById("rookBtn").onclick = () => showPieceMoves("rook");
+      document.getElementById("knightBtn").onclick = () =>
+        showPieceMoves("knight");
+      document.getElementById("bishopBtn").onclick = () =>
+        showPieceMoves("bishop");
+      document.getElementById("queenBtn").onclick = () =>
+        showPieceMoves("queen");
+      document.getElementById("kingBtn").onclick = () => showPieceMoves("king");
+
+      // Show pawn by default
+      showPieceMoves("pawn");
+    </script>
+  </body>
+</html>
