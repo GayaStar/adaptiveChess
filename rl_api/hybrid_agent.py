@@ -5,7 +5,7 @@ import random
 from chess_rl_agent import RLChessAgent
 
 class HybridChessAgent:
-    def __init__(self, model_path, stockfish_path="stockfish-ubuntu-x86-64-avx2"):
+    def __init__(self, model_path, stockfish_path):
         self.rl_agent = RLChessAgent(model_path)
         self.engine = chess.engine.SimpleEngine.popen_uci(stockfish_path)
         print("[INIT] HybridChessAgent initialized with RL model and Stockfish.")

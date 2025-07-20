@@ -25,6 +25,9 @@ CORS(
 
 # Per-user RL agents
 user_agents = {}
+base_dir = os.path.dirname(os.path.abspath(__file__))
+stockfish_path = os.path.join(base_dir, 'stockfish-ubuntu-x86-64-avx2')
+model_path="model/chess_rl_model_final1.pth"
 
 def get_agent(user_id):
     if user_id not in user_agents:
@@ -53,7 +56,7 @@ def login():
     return jsonify({'message': 'Logged in', 'user_id': user_id})
 
 # Initialize the hybrid agent once
-agent = HybridChessAgent(model_path="model/chess_rl_model_final1.pth", stockfish_path="stockfish-ubuntu-x86-64-avx2")
+agent = HybridChessAgent(model_path, stockfish_path)
 
 @app.route("/rl-move", methods=["POST"])
 def rl_move():
