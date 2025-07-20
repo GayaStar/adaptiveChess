@@ -126,5 +126,10 @@ def get_user_id():
     else:
         return jsonify({'error': 'Not logged in'}), 401
 
+@app.route("/", methods=["GET"])
+def index():
+    return jsonify({"status": "Hybrid Chess API is running"}), 200
+
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0",port=5001)
