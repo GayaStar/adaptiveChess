@@ -9,7 +9,7 @@ const MongoStore = require('connect-mongo');
 
 const app = express();
 const PORT = 8081;
-const MONGO_URI = 'mongodb://localhost:27017';
+const MONGO_URI = 'mongodb+srv://Gayatri:Gayatri@cluster0.lqjncky.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
 const DB_NAME = 'chess_app';
 
 let db, usersCollection;
@@ -38,7 +38,7 @@ app.use(session({
 }));
 
 // MongoDB Connection
-MongoClient.connect(MONGO_URI, { useUnifiedTopology: true })
+MongoClient.connect(MONGO_URI)
   .then(client => {
     db = client.db(DB_NAME);
     usersCollection = db.collection('users');
