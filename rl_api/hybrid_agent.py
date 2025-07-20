@@ -3,6 +3,20 @@ import chess
 import chess.engine
 import random
 from chess_rl_agent import RLChessAgent
+import os
+import stat
+def ensure_executable(path):
+    if os.path.exists(path):
+        st = os.stat(path)
+        os.chmod(path, st.st_mode | stat.S_IEXEC)
+        print(f"[PERMISSION] Ensured executable for {path}")
+    else:
+        raise FileNotFoundError(f"[ERROR] Stockfish binary not found at {path}")
+
+# ✅ Automatically fix permissions on import
+stockfish_binary_path = os.path.join(os.path.dirname(__file__), 'stockfish-ubuntu-x86-64-avx2')
+ensure_executable(stockfish_binary_path)
+
 
 class HybridChessAgent:
     def __init__(self, model_path, stockfish_path):

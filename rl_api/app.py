@@ -103,7 +103,7 @@ def update_elo():
             
         except Exception as err:
             error_message = f"[ERROR] While syncing to Node: {err}"
-        return render_template_string("""
+            return render_template_string("""
             <html>
             <body>
                 <h1>Application Page</h1>
