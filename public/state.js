@@ -8,7 +8,7 @@ let stockfishLevel = 0;
 let stockfishDepth = 5;
 let gameEnded = false;
 let gameSaved = false;
-const API = 'https://adaptivechess.onrender.com/';
+const API = 'https://adaptivechess.onrender.com';
 
 // 🧠 RL Agent flag
 let rlGame = false;
