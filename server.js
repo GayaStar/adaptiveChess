@@ -11,7 +11,7 @@ const app = express();
 const PORT = process.env.PORT || 8081;
 const MONGO_URI = 'mongodb+srv://Gayatri:Gayatri@cluster0.lqjncky.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
 const DB_NAME = 'chess_app';
-
+const FRONTEND_URL='https://adaptivechess.onrender.com/'
 let db, usersCollection;
 
 // Middleware
