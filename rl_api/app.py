@@ -17,6 +17,7 @@ CORS(
     app,
     supports_credentials=True,
     resources={r"/*": {"origins": [frontend_url]}},
+    origins=["https://adaptivechess.onrender.com"], 
     allow_headers=["Content-Type", "Authorization"],
     methods=["GET", "POST", "OPTIONS"]
 )
