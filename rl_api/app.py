@@ -16,7 +16,9 @@ frontend_url = os.environ.get("FRONTEND_URL", "https://adaptivechess.onrender.co
 CORS(
     app,
     supports_credentials=True,
-    resources={r"/*": {"origins": [frontend_url]}}
+    resources={r"/*": {"origins": [frontend_url]}},
+    allow_headers=["Content-Type", "Authorization"],
+    methods=["GET", "POST", "OPTIONS"]
 )
 
 # Per-user RL agents
@@ -73,13 +75,20 @@ def rl_move():
             "userId": user_id,
             "temperature": agent.temperature
         })
+        if response.status_code != 200:
+            return jsonify({
+            "move": {"from": move.uci()[:2], "to": move.uci()[2:], "promotion": "q"},
+            "temperature": agent.temperature
+        })
+
+
 
         return jsonify(response)
     except Exception as e:
         return f"Failed to select move: {str(e)}", 500
 
 @app.route("/update-elo", methods=["POST"])
-def update_elo():
+def update_elo():   
     data = request.json
     elo = data.get("elo")
     user_id = data.get("user_id")
