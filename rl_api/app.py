@@ -9,25 +9,20 @@ from hybrid_agent import HybridChessAgent
 
 
 app = Flask(__name__)
-app.secret_key = 'super-secret-key-change-me'
+app.secret_key = os.environ.get("SECRET_KEY", "fallback-secret")
 
+frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:8080")
 CORS(
     app,
     supports_credentials=True,
-    resources={
-        r"/*": {
-            "origins": ["http://localhost:8081","http://localhost:8080"],
-            "methods": ["POST", "OPTIONS"],
-            "allow_headers": ["Content-Type"],
-        }
-    },
+    resources={r"/*": {"origins": [frontend_url]}}
 )
 
 # Per-user RL agents
 user_agents = {}
 base_dir = os.path.dirname(os.path.abspath(__file__))
 stockfish_path = os.path.join(base_dir, 'stockfish-ubuntu-x86-64-avx2')
-model_path="model/chess_rl_model_final1.pth"
+model_path = os.path.join(base_dir, "model", "chess_rl_model_final1.pth")
 
 def get_agent(user_id):
     if user_id not in user_agents:
@@ -71,13 +66,13 @@ def rl_move():
     try:
         board = chess.Board(fen)
         move = agent.select_move(board)
-        response = {
-            "move": {
-                "from": chess.square_name(move.from_square),
-                "to": chess.square_name(move.to_square),
-                "promotion": move.promotion and chess.piece_symbol(move.promotion)
-            }
-        }
+        NODE_BACKEND_URL = os.environ.get("https://adaptivechess-flask.onrender.com", "http://localhost:8080")
+
+        response = requests.post(f"{NODE_BACKEND_URL}/update_rl_temperature", json={
+            "userId": user_id,
+            "temperature": agent.temperature
+        })
+
         return jsonify(response)
     except Exception as e:
         return f"Failed to select move: {str(e)}", 500
@@ -132,4 +127,5 @@ def index():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0",port=5001)
+    port = int(os.environ.get("PORT", 5001))
+    app.run(host="0.0.0.0", port=port)
