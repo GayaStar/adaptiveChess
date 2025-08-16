@@ -11,7 +11,8 @@ from hybrid_agent import HybridChessAgent
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "fallback-secret")
 
-frontend_url = os.environ.get("FRONTEND_URL", "http://localhost:8080")
+frontend_url = os.environ.get("FRONTEND_URL", "https://adaptivechess.onrender.com")
+
 CORS(
     app,
     supports_credentials=True,
@@ -66,7 +67,7 @@ def rl_move():
     try:
         board = chess.Board(fen)
         move = agent.select_move(board)
-        NODE_BACKEND_URL = os.environ.get("https://adaptivechess-flask.onrender.com", "http://localhost:8080")
+        NODE_BACKEND_URL = os.environ.get("NODE_BACKEND_URL", "https://adaptivechess.onrender.com")
 
         response = requests.post(f"{NODE_BACKEND_URL}/update_rl_temperature", json={
             "userId": user_id,
@@ -91,7 +92,10 @@ def update_elo():
         agent.update_user_elo(elo)
 
         try:
-            response = requests.post("http://localhost:8080/update_rl_temperature", json={
+            
+            NODE_BACKEND_URL = os.environ.get("NODE_BACKEND_URL", "https://adaptivechess.onrender.com")
+
+            response = requests.post(f"{NODE_BACKEND_URL}/update_rl_temperature", json={
                 "userId": user_id,
                 "temperature": agent.temperature
             })
