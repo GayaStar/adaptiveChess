@@ -22,6 +22,7 @@ class HybridChessAgent:
     def __init__(self, model_path, stockfish_path):
         self.rl_agent = RLChessAgent(model_path)
         self.engine = chess.engine.SimpleEngine.popen_uci(stockfish_path)
+        self.temperature = temperature 
         print("[INIT] HybridChessAgent initialized with RL model and Stockfish.")
 
     def set_user_elo(self, elo):
