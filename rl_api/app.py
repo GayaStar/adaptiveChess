@@ -11,7 +11,7 @@ from hybrid_agent import HybridChessAgent
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "fallback-secret")
 
-frontend_url = os.environ.get("FRONTEND_URL", "https://adaptivechess.onrender.com")
+frontend_url = os.environ.get("FRONTEND_URL", "https://adaptivechess1.onrender.com")
 
 CORS(
     app,
@@ -143,3 +143,4 @@ def index():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5001))
     app.run(host="0.0.0.0", port=port)
+
